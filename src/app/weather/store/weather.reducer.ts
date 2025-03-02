@@ -1,10 +1,11 @@
 
 import { Action, createReducer, on } from '@ngrx/store';
 import * as weatherActions from './weather.actions';
-import {  ICoordinatesState } from '../weather';
+import {  WeatherState } from '../weather';
 
-const initialState: ICoordinatesState = {
+const initialState: WeatherState = {
   weatherCoordinates: [],
+  weatherForecast: [],
   errorMsg: null 
 }
 
@@ -14,11 +15,15 @@ const featureReducer = createReducer(
     ...state,
     weatherCoordinates: [...state.weatherCoordinates,coordinates],
   })),
-  on(weatherActions.loadGeoCoordinatesFailure, (state, { error }) => ({
+  on(weatherActions.loadCityForecastSuccess, (state, { weatherForecast }) => ({
+    ...state,
+    weatherForecast: [...state.weatherForecast,weatherForecast],
+  })),
+  on(weatherActions.LoadForecastFailure, (state, { error }) => ({
     ...state, errorMsg: error
   }))  
 );
 
-export function reducer(state: ICoordinatesState | undefined, action: Action) {
+export function reducer(state: WeatherState | undefined, action: Action) {
   return featureReducer(state, action);
 }

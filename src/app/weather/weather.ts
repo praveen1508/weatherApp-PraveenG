@@ -6,10 +6,15 @@ export interface WeatherCoordinates {
   country: string;
 }
 
-export type Coordinates = Pick<WeatherCoordinates, 'lat' | 'lon'>;
+export interface Coordinates  {
+  lat: number;
+  lon: number;  
+  city?: string;
+}
 
-export interface ICoordinatesState {
+export interface WeatherState {
     weatherCoordinates: WeatherCoordinates[],
+    weatherForecast: WeatherForecast[],
     errorMsg: string| null 
 }
 
@@ -18,6 +23,7 @@ export interface WeatherForecast {
   message: number;
   cnt: number;
   list: WeatherList[];
+  city: string;
 }
 
 export interface WeatherList {

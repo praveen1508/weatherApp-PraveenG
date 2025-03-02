@@ -12,8 +12,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
-
-
+import { WeatherFacadeService } from './store/weather-facade.service';
 
 @NgModule({
   declarations: [
@@ -33,6 +32,6 @@ import {MatButtonModule} from '@angular/material/button';
     StoreModule.forFeature('weather', reducer),
     EffectsModule.forFeature([WeatherStoreEffects])
   ],
-  providers: [WeatherApiService] 
+  providers: [WeatherApiService,WeatherFacadeService] 
 })
 export class WeatherModule { }

@@ -1,13 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { City_Options, imageUrl } from '../weather.config';
 import { FormControl } from '@angular/forms';
-import { select, Store } from '@ngrx/store';
-import * as weatherActions from '../store/weather.actions';
-import { selectGeoCoordinates } from '../store/weather.selectors';
 import { Subject, switchMap, takeUntil } from 'rxjs';
-import { WeatherApiService } from '../store/weather-api.service';
 import { WeatherForecast, WeatherList } from '../weather';
-import { HttpErrorResponse } from '@angular/common/http';
+import { WeatherFacadeService } from '../store/weather-facade.service';
 
 @Component({
   selector: 'app-weather',
@@ -25,52 +21,35 @@ export class WeatherComponent implements OnInit, OnDestroy {
   }
 
   constructor(
-    private store: Store,
-    private weatherApiService: WeatherApiService
+    private weatherFacadeService: WeatherFacadeService
   ) {}
 
   ngOnInit(): void {
     this.createDates();
-    this.loadGeoCoordinates();
     this.listenToCityDropdownChange();
-  }
-
-  /* Fetching Geo coordinates for all the cities and 
-  storing it in the store to avoid Redundant API Calls*/
-  loadGeoCoordinates(): void {
-    this.cityDropDownOptions?.forEach((cityName: string) => {
-      if (cityName) {
-        this.store.dispatch(weatherActions.loadGeoCoordinates({ cityName }));
-      }
-    });
   }
 
   //Checks if the user has choosen any value in the City Dropdown
   showWeatherForecast(): boolean {
     return this.city?.value;
   }
-
+ 
+  /* 
+   When the user selects the particular City geocoordinates and weatherForecast api call 
+   is made and cached using NgRx Store to avoid redundant API calls 
+  */
   listenToCityDropdownChange(): void {
     this.city?.valueChanges
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((cityName: string) => {
-        if (cityName) {
-          const coordinates = this.store.pipe(
-            select(selectGeoCoordinates(cityName))
-          );
-          coordinates
-            ?.pipe(
-              switchMap((data) =>
-                this.weatherApiService.getWeatherForeCast({
-                  lat: data?.lat as number,
-                  lon: data?.lon as number,
-                })
-              )
-            )
-            .subscribe({
-              next: (data: WeatherForecast) => (this.weatherData = data?.list),
-              error: (err: HttpErrorResponse) => console.log(err),
-            });
+      .pipe(
+        switchMap((cityName) => {
+          this.weatherFacadeService.loadWeatherForeCast(cityName);
+          return this.weatherFacadeService.getWeatherForecast(cityName);
+        }),
+        takeUntil(this.unsubscribe$)
+      )
+      .subscribe((data: WeatherForecast | undefined) => {
+        if (data) {
+          this.weatherData = data?.list;
         }
       });
   }
